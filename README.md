@@ -11,7 +11,8 @@ A customizable Flutter widget that transforms a regular button into an interacti
 
 ## Demo
 
-![Loading Button Demo](demo.gif) *(Add a GIF demonstrating the button in action)*
+![ScreenRecording2025-02-03at16 47 19-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/13601391-bafd-46cc-867c-23025569cc4f)
+
 
 ## Getting Started
 
