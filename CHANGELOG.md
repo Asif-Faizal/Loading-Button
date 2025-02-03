@@ -9,3 +9,12 @@
 * Added LoadingButtonStyle for better customization
 * Fixed state transition animations
 * Added proper documentation
+
+## 0.0.5
+
+* Added isOutlined property to LoadingButtonStyle
+* Added outlineWidth property to LoadingButtonStyle
+* Added isOutlined property to LoadingButton
+* Added outlineWidth property to LoadingButton
+* Added isOutlined property to LoadingButtonStyle
+* Added outlineWidth property to LoadingButtonStyle
