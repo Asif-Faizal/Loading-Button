@@ -25,3 +25,7 @@
 * Added outlineWidth property to LoadingButton
 * Added isOutlined property to LoadingButtonStyle
 * Added outlineWidth property to LoadingButtonStyle
+
+## 0.0.7
+
+* Added README.md
