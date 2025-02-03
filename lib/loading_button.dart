@@ -9,6 +9,8 @@ class LoadingButtonStyle {
   final double height;
   final double fontSize;
   final double elevation;
+  final bool isOutlined;
+  final double outlineWidth;
 
   const LoadingButtonStyle({
     this.borderRadius = 24.0,
@@ -18,6 +20,8 @@ class LoadingButtonStyle {
     this.height = 48.0,
     this.fontSize = 16.0,
     this.elevation = 4.0,
+    this.isOutlined = false,
+    this.outlineWidth = 2.0,
   });
 }
 
@@ -44,24 +48,44 @@ class LoadingButton extends StatefulWidget {
 class _LoadingButtonState extends State<LoadingButton> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _bounceAnimation;
+  late Animation<double> _rotationAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 1500),
     );
+    
+    // Create a bouncy rotation animation
+    _rotationAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.0, end: 0.5)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 40.0,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.5, end: 0.9)
+            .chain(CurveTween(curve: Curves.elasticOut)),
+        weight: 30.0,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.8, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 30.0,
+      ),
+    ]).animate(_controller);
     
     _bounceAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.1)
+        tween: Tween<double>(begin: 1.0, end: 1.15)
             .chain(CurveTween(curve: Curves.easeInOut)),
         weight: 30.0,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.1, end: 1.0)
-            .chain(CurveTween(curve: Curves.bounceOut)),
+        tween: Tween<double>(begin: 1.15, end: 1.0)
+            .chain(CurveTween(curve: Curves.elasticOut)),
         weight: 70.0,
       ),
     ]).animate(_controller);
@@ -106,9 +130,13 @@ class _LoadingButtonState extends State<LoadingButton> with SingleTickerProvider
               width: widget.isLoading ? widget.style.height : widget.style.width,
               height: widget.style.height,
               decoration: BoxDecoration(
-                color: widget.style.backgroundColor,
+                color: widget.style.isOutlined ? Colors.transparent : widget.style.backgroundColor,
                 borderRadius: BorderRadius.circular(widget.style.borderRadius),
-                boxShadow: widget.style.elevation > 0
+                border: widget.style.isOutlined ? Border.all(
+                  color: widget.style.backgroundColor,
+                  width: widget.style.outlineWidth,
+                ) : null,
+                boxShadow: !widget.style.isOutlined && widget.style.elevation > 0
                     ? [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.3),
@@ -128,8 +156,9 @@ class _LoadingButtonState extends State<LoadingButton> with SingleTickerProvider
                           builder: (context, child) {
                             return CustomPaint(
                               painter: LoadingPainter(
-                                progress: _controller.value,
+                                progress: _rotationAnimation.value,
                                 color: widget.style.foregroundColor,
+                                bounceScale: _bounceAnimation.value,
                               ),
                             );
                           },
@@ -161,33 +190,41 @@ class _LoadingButtonState extends State<LoadingButton> with SingleTickerProvider
 class LoadingPainter extends CustomPainter {
   final double progress;
   final Color color;
+  final double bounceScale;
 
   LoadingPainter({
     required this.progress,
     required this.color,
+    required this.bounceScale,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
       ..color = color
-      ..strokeWidth = 2
+      ..strokeWidth = 2.5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = min(size.width, size.height) / 2 - paint.strokeWidth / 2;
+    final radius = (min(size.width, size.height) / 2 - paint.strokeWidth / 2) * bounceScale;
 
-    // Draw the background circle
+    // Draw the background circle with varying opacity
     paint.color = color.withOpacity(0.2);
     canvas.drawCircle(center, radius, paint);
 
-    // Draw the progress arc
+    // Draw the progress arc with a bouncy effect
     paint.color = color;
+    final startAngle = -pi / 2;
+    final sweepAngle = 2 * pi * progress;
+    
+    // Add a slight elastic effect to the arc
+    final elasticRadius = radius * (1 + sin(progress * pi * 2) * 0.03);
+    
     canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -pi / 2,
-      2 * pi * progress,
+      Rect.fromCircle(center: center, radius: elasticRadius),
+      startAngle,
+      sweepAngle,
       false,
       paint,
     );
@@ -195,7 +232,9 @@ class LoadingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(LoadingPainter oldDelegate) =>
-      progress != oldDelegate.progress || color != oldDelegate.color;
+      progress != oldDelegate.progress || 
+      color != oldDelegate.color ||
+      bounceScale != oldDelegate.bounceScale;
 }
 
 class DonePainter extends CustomPainter {

@@ -1,8 +1,8 @@
-name: loading_button
+name: bouncing_loading_button
 description: A customizable Flutter loading button with smooth animations and state transitions.
 version: 0.0.4
-homepage: https://github.com/yourusername/loading_button
-repository: https://github.com/yourusername/loading_button
+homepage: https://github.com/Asif-Faizal/Loading-Button
+repository: https://github.com/Asif-Faizal/Loading-Button
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
