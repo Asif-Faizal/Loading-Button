@@ -11,10 +11,19 @@ class LoadingButtonStyle {
   final double elevation;
   final bool isOutlined;
   final double outlineWidth;
+  
+  final EdgeInsetsGeometry padding;
+  final FontWeight fontWeight;
+  final String? fontFamily;
+  final double loadingIconSize;
+  final double doneIconSize;
+  final Duration animationDuration;
+  final double loadingStrokeWidth;
+  final double doneStrokeWidth;
 
   const LoadingButtonStyle({
     this.borderRadius = 24.0,
-    this.backgroundColor = Colors.blue,
+    this.backgroundColor = Colors.black,
     this.foregroundColor = Colors.white,
     this.width = 120.0,
     this.height = 48.0,
@@ -22,6 +31,14 @@ class LoadingButtonStyle {
     this.elevation = 4.0,
     this.isOutlined = false,
     this.outlineWidth = 2.0,
+    this.padding = const EdgeInsets.symmetric(horizontal: 16.0),
+    this.fontWeight = FontWeight.w500,
+    this.fontFamily,
+    this.loadingIconSize = 24.0,
+    this.doneIconSize = 24.0,
+    this.animationDuration = const Duration(milliseconds: 500),
+    this.loadingStrokeWidth = 2.5,
+    this.doneStrokeWidth = 2.0,
   });
 }
 
@@ -58,20 +75,20 @@ class _LoadingButtonState extends State<LoadingButton> with SingleTickerProvider
       duration: const Duration(milliseconds: 1500),
     );
     
-    // Create a bouncy rotation animation
+    // Create a bouncy rotation animation that completes full circle
     _rotationAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 0.5)
+        tween: Tween<double>(begin: 0.0, end: 0.65)
             .chain(CurveTween(curve: Curves.easeOut)),
-        weight: 40.0,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0.5, end: 0.9)
-            .chain(CurveTween(curve: Curves.elasticOut)),
         weight: 30.0,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.8, end: 1.0)
+        tween: Tween<double>(begin: 0.6, end: 0.95)
+            .chain(CurveTween(curve: Curves.elasticOut)),
+        weight: 40.0,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.95, end: 1.0)
             .chain(CurveTween(curve: Curves.easeInOut)),
         weight: 30.0,
       ),
@@ -79,14 +96,19 @@ class _LoadingButtonState extends State<LoadingButton> with SingleTickerProvider
     
     _bounceAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.15)
+        tween: Tween<double>(begin: 1.0, end: 1.2)
             .chain(CurveTween(curve: Curves.easeInOut)),
         weight: 30.0,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.15, end: 1.0)
+        tween: Tween<double>(begin: 1.2, end: 0.95)
             .chain(CurveTween(curve: Curves.elasticOut)),
-        weight: 70.0,
+        weight: 40.0,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.95, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 30.0,
       ),
     ]).animate(_controller);
 
@@ -124,61 +146,64 @@ class _LoadingButtonState extends State<LoadingButton> with SingleTickerProvider
         builder: (context, child) {
           return Transform.scale(
             scale: widget.isDone || widget.isLoading ? _bounceAnimation.value : 1.0,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOutBack,
-              width: widget.isLoading ? widget.style.height : widget.style.width,
-              height: widget.style.height,
-              decoration: BoxDecoration(
-                color: widget.style.isOutlined ? Colors.transparent : widget.style.backgroundColor,
-                borderRadius: BorderRadius.circular(widget.style.borderRadius),
-                border: widget.style.isOutlined ? Border.all(
-                  color: widget.style.backgroundColor,
-                  width: widget.style.outlineWidth,
-                ) : null,
-                boxShadow: !widget.style.isOutlined && widget.style.elevation > 0
-                    ? [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
-                          blurRadius: widget.style.elevation * 2,
-                          offset: Offset(0, widget.style.elevation),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Center(
-                child: widget.isLoading
-                    ? SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: AnimatedBuilder(
-                          animation: _controller,
-                          builder: (context, child) {
-                            return CustomPaint(
-                              painter: LoadingPainter(
-                                progress: _rotationAnimation.value,
-                                color: widget.style.foregroundColor,
-                                bounceScale: _bounceAnimation.value,
-                              ),
-                            );
-                          },
-                        ),
-                      )
-                    : widget.isDone
-                        ? CustomPaint(
-                            size: const Size(24, 24),
-                            painter: DonePainter(
-                              color: widget.style.foregroundColor,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return AnimatedContainer(
+                  duration: widget.style.animationDuration,
+                  width: widget.isLoading ? widget.style.height : constraints.maxWidth,
+                  height: widget.style.height,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(widget.style.borderRadius),
+                    color: widget.style.isOutlined ? Colors.transparent : widget.style.backgroundColor,
+                    border: widget.style.isOutlined
+                        ? Border.all(
+                            color: widget.style.backgroundColor,
+                            width: widget.style.outlineWidth,
+                          )
+                        : null,
+                  ),
+                  child: Center(
+                    child: widget.isLoading
+                        ? SizedBox(
+                            width: widget.style.loadingIconSize,
+                            height: widget.style.loadingIconSize,
+                            child: AnimatedBuilder(
+                              animation: _controller,
+                              builder: (context, child) {
+                                return CustomPaint(
+                                  painter: LoadingPainter(
+                                    progress: _rotationAnimation.value,
+                                    color: widget.style.foregroundColor,
+                                    bounceScale: _bounceAnimation.value,
+                                    style: widget.style,
+                                  ),
+                                );
+                              },
                             ),
                           )
-                        : Text(
-                            widget.label,
-                            style: TextStyle(
-                              color: widget.style.foregroundColor,
-                              fontSize: widget.style.fontSize,
-                            ),
-                          ),
-              ),
+                        : widget.isDone
+                            ? CustomPaint(
+                                size: Size(widget.style.doneIconSize, widget.style.doneIconSize),
+                                painter: DonePainter(
+                                  color: widget.style.foregroundColor,
+                                  strokeWidth: widget.style.doneStrokeWidth,
+                                ),
+                              )
+                            : Padding(
+                                padding: widget.style.padding,
+                                child: Text(
+                                  widget.label,
+                                  style: TextStyle(
+                                    color: widget.style.foregroundColor,
+                                    fontSize: widget.style.fontSize,
+                                    fontWeight: widget.style.fontWeight,
+                                    fontFamily: widget.style.fontFamily,
+                                  ),
+                                ),
+                              ),
+                  ),
+                );
+              },
             ),
           );
         },
@@ -191,18 +216,20 @@ class LoadingPainter extends CustomPainter {
   final double progress;
   final Color color;
   final double bounceScale;
+  final LoadingButtonStyle style;
 
   LoadingPainter({
     required this.progress,
     required this.color,
     required this.bounceScale,
+    required this.style,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
       ..color = color
-      ..strokeWidth = 2.5
+      ..strokeWidth = style.loadingStrokeWidth
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
@@ -210,16 +237,16 @@ class LoadingPainter extends CustomPainter {
     final radius = (min(size.width, size.height) / 2 - paint.strokeWidth / 2) * bounceScale;
 
     // Draw the background circle with varying opacity
-    paint.color = color.withOpacity(0.2);
+    paint.color = color.withValues(alpha: 0.5);
     canvas.drawCircle(center, radius, paint);
 
     // Draw the progress arc with a bouncy effect
     paint.color = color;
-    final startAngle = -pi / 2;
+    const startAngle = -pi / 2;
     final sweepAngle = 2 * pi * progress;
     
-    // Add a slight elastic effect to the arc
-    final elasticRadius = radius * (1 + sin(progress * pi * 2) * 0.03);
+    // Add a more pronounced elastic effect to the arc
+    final elasticRadius = radius * (1 + sin(progress * pi * 2) * 0.05);
     
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: elasticRadius),
@@ -228,25 +255,38 @@ class LoadingPainter extends CustomPainter {
       false,
       paint,
     );
+
+    // Add leading dot at the end of the arc
+    final dotAngle = startAngle + sweepAngle;
+    final dotX = center.dx + cos(dotAngle) * elasticRadius;
+    final dotY = center.dy + sin(dotAngle) * elasticRadius;
+    
+    paint.style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(dotX, dotY), paint.strokeWidth / 2, paint);
   }
 
   @override
   bool shouldRepaint(LoadingPainter oldDelegate) =>
       progress != oldDelegate.progress || 
       color != oldDelegate.color ||
-      bounceScale != oldDelegate.bounceScale;
+      bounceScale != oldDelegate.bounceScale ||
+      style != oldDelegate.style;
 }
 
 class DonePainter extends CustomPainter {
   final Color color;
+  final double strokeWidth;
 
-  DonePainter({required this.color});
+  DonePainter({
+    required this.color,
+    required this.strokeWidth,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
       ..color = color
-      ..strokeWidth = 2
+      ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
@@ -259,5 +299,5 @@ class DonePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(DonePainter oldDelegate) => color != oldDelegate.color;
+  bool shouldRepaint(DonePainter oldDelegate) => color != oldDelegate.color || strokeWidth != oldDelegate.strokeWidth;
 }
