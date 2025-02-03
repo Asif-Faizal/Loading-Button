@@ -18,3 +18,10 @@
 * Added outlineWidth property to LoadingButton
 * Added isOutlined property to LoadingButtonStyle
 * Added outlineWidth property to LoadingButtonStyle
+
+## 0.0.6
+
+* Added isOutlined property to LoadingButton
+* Added outlineWidth property to LoadingButton
+* Added isOutlined property to LoadingButtonStyle
+* Added outlineWidth property to LoadingButtonStyle
